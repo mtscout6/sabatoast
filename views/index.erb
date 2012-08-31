@@ -9,6 +9,23 @@
 	</script>
 </head>
 <body>
-	<h1>Test</h1>
+	<br/>
+	Last <%= settings.jenkinsJob %> build number: <%= @last_build %>
+	<br/>
+	<br/>
+	<h1>Last 5 builds by branch:</h1>
+	<br/>
+	<ul>
+	<% @last_five_builds.each do |branch, build| %>
+	<li><%= escape_html branch %> : <%= escape_html build %></li>
+	<% end %>
+	</ul>
+	<h1>Jobs</h1>
+	<br/>
+	<ul>
+    <% @jobs.each do |job| %>
+    <li><%= escape_html job['name'] %></li>
+    <% end %>
+	</ul>
 </body>
 </html>
