@@ -12,7 +12,28 @@ end
 get '/' do
   @jobs = get_enabled_jobs
   @last_build = get_last_build_number
-  @last_five_builds = get_builds_by_branch_name 5, @last_build  
+  @last_five_builds = get_builds_by_branch_name 1, @last_build  
+  @downstream_projects = get_downstream_projects 
+  
+
+  this_blue_build_num = @last_five_builds["origin/f-35"]
+  this_build_status = _get("/job/#{settings.jenkinsJob}/#{this_blue_build_num}/api/json")
+  this_build_result = this_build_status['result']
+    
+  downstream_status = []
+  @downstream_projects.each do |project|
+    ds_build_info = _get("/job/#{project}/api/json")
+    xx = ds_build_info["builds"].map { |x| x["number"] }
+    ds_build_nums = xx.each do |build_num| 
+       # see if this build is the downstream for this Blue build
+       cur_ds_build = _get("/job/#{project}/#{build_num}/api/json")
+       if cur_ds_build["actions"][0]["causes"]["upstreamBuild"] == this_blue_build_num
+          downstream_status << {:name=>project, :status=>cur_ds_build["result"]} 
+          break
+       end
+    end
+  end
+
   erb :index
 end
 
@@ -46,3 +67,21 @@ def get_builds_by_branch_name(take, last_build)
  builds.take(take).each{|b| last_x_branch_builds[branches_by_build[b]] = b }
  last_x_branch_builds
 end
+
+def get_downstream_projects
+  response = _get("/job/#{settings.jenkinsJob}/api/json")
+  x = response['downstreamProjects'] || []
+  x.map {|p| p['name'] } 
+end
+
+def get_build_statuses(build_num)
+  # get Blue build status for build #build_num
+  # for each downstream, find the corresponding build and get status
+end
+
+def _get(url_fragment)
+  return JSON.parse(open("#{settings.jenkinsUri}#{url_fragment}", "Authorization" => "Basic " + settings.jenkinsAuth).read)
+end
+
+
+
