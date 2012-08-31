@@ -1,1 +1,0 @@
-web: rackup -p 5000 config.ru
