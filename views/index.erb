@@ -9,23 +9,23 @@
 	</script>
 </head>
 <body>
-	<br/>
-	Last <%= settings.jenkinsJob %> build number: <%= @last_build %>
-	<br/>
-	<br/>
-	<h1>Last 5 builds by branch:</h1>
-	<br/>
-	<ul>
-	<% @last_five_builds.each do |branch, build| %>
-	<li><%= escape_html branch %> : <%= escape_html build %></li>
-	<% end %>
-	</ul>
-	<h1>Jobs</h1>
-	<br/>
-	<ul>
-    <% @jobs.each do |job| %>
-    <li><%= escape_html job['name'] %></li>
-    <% end %>
-	</ul>
+  <% @builds.each do |build| %>
+     <h1><%= build[:branch]%> (<%= build[:buildnum]%>)</h1>
+     <h2><%= build[:overall_result]%></h2>
+     <hr/>     
+     <h3>Failed Builds</h3>
+     <ul>
+     <% build[:failures].each do |f| %>
+        <li><%= f[:name]%> (<%= f[:buildnum]%>)</li>
+     <% end %>
+     </ul>
+     <h3>Downstream Builds</h3>
+     <ul>
+     <% build[:downstream_builds].each do |ds| %>
+        <li><%= ds[:name]%> (<%= ds[:buildnum]%>): <%= ds[:result]%></li>
+     <% end %>     
+     </ul>
+  <% end %>
+
 </body>
 </html>
