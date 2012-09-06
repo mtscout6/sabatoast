@@ -7,15 +7,16 @@ configure do
    set :jenkinsUri, ENV["SABATOAST_JENKINS_URL"]
    set :jenkinsAuth, ENV["SABATOAST_JENKINS_AUTH"]
    set :jenkinsJob, ENV["SABATOAST_JENKINS_JOB"]
+   set :serve_static_assets, true
 end
 
 
 ##################################
 
 get '/' do
-  last_five_root_build_nums = get_last_x_build_numbers 5
+  last_x_root_build_nums = get_last_x_build_numbers 3
   downstream_projects = get_downstream_projects 
-  @builds = collect_build_details last_five_root_build_nums
+  @builds = collect_build_details last_x_root_build_nums
   collect_downstream_build_statuses @builds, downstream_projects
     
   erb :index
@@ -53,7 +54,7 @@ def collect_build_details(build_nums)
     
     builds << {
                 :buildnum => root_build_num, 
-                :branch => this_build_branch, 
+                :branch => this_build_branch.sub(/origin\//, ""), 
                 :result => this_build_status["result"], 
                 :full_status => this_build_status, 
                 :downstream_builds => [],
