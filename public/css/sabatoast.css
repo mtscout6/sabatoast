@@ -394,6 +394,10 @@ h1 small {
   vertical-align: middle;
 }
 
+h1 small a {
+  color: #fff;
+}
+
 table {
   width: 100%;
 }
@@ -442,4 +446,6 @@ h2 {
 
 .all-builds li.building {
   background-color: #FDD017;
+  color: #111;
+  text-shadow: rgba(255,255,255,0.7);
 }

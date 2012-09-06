@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Sabatoast</title>
-	<link href="css/sabatoast.css" rel="stylesheet" type="text/css" />
+  <title>Sabatoast</title>
+  <meta http-equiv="refresh" content="30">
+  <link href="css/sabatoast.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <table>
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build[:branch]%> <small><%= build[:buildnum]%></small></h1>
+       <h1><%= build[:branch]%> <small><%= build[:buildnum]%></small> <small class="sha">HEAD: <a href="https://github.com/DovetailSoftware/blue/commit/<%= build[:SHA1]%>"><%= build[:SHA1]%></a></small></h1>       
        <% if build[:result].nil? %>
        <h2>Building...</h2>
        <% end %>

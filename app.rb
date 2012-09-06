@@ -52,10 +52,12 @@ def collect_build_details(build_nums)
       builds_by_branch = this_build_status["actions"][idx]["buildsByBranchName"]
       ar = builds_by_branch.values.select {|v| v["buildNumber"] == root_build_num.to_i}
       this_build_branch = ar[0]["revision"]["branch"][0]["name"]
+      this_build_sha = ar[0]["revision"]["branch"][0]["SHA1"]
       
       builds << {
                   :buildnum => root_build_num, 
                   :branch => this_build_branch.sub(/origin\//, ""), 
+                  :SHA1 => this_build_sha[0,6],
                   :result => this_build_status["result"], 
                   :full_status => this_build_status, 
                   :downstream_builds => [],
