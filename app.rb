@@ -48,20 +48,22 @@ def collect_build_details(build_nums)
     this_build_status = _get("/job/#{settings.jenkinsJob}/#{root_build_num}/api/json")
     this_build_result = this_build_status['result']
     idx = this_build_status["actions"].index { |a| a.has_key?("buildsByBranchName") }
-    builds_by_branch = this_build_status["actions"][idx]["buildsByBranchName"]
-    ar = builds_by_branch.values.select {|v| v["buildNumber"] == root_build_num.to_i}
-    this_build_branch = ar[0]["revision"]["branch"][0]["name"]
-    
-    builds << {
-                :buildnum => root_build_num, 
-                :branch => this_build_branch.sub(/origin\//, ""), 
-                :result => this_build_status["result"], 
-                :full_status => this_build_status, 
-                :downstream_builds => [],
-                :failures => [],
-                :overall_result => this_build_status["result"]
-              }
-  end
+    unless idx.nil?
+      builds_by_branch = this_build_status["actions"][idx]["buildsByBranchName"]
+      ar = builds_by_branch.values.select {|v| v["buildNumber"] == root_build_num.to_i}
+      this_build_branch = ar[0]["revision"]["branch"][0]["name"]
+      
+      builds << {
+                  :buildnum => root_build_num, 
+                  :branch => this_build_branch.sub(/origin\//, ""), 
+                  :result => this_build_status["result"], 
+                  :full_status => this_build_status, 
+                  :downstream_builds => [],
+                  :failures => [],
+                  :overall_result => this_build_status["result"]
+                }
+    end
+  end  
   
   builds
 end
@@ -73,10 +75,16 @@ def collect_downstream_build_statuses(root_builds, downstream_projects)
        root_build[:failures] << {:name => settings.jenkinsJob, :buildnum => root_build_num}
        next
     end
+    next if root_build[:result].nil? # currently running    
     downstream_projects.each do |ds_project|
       ds_build_info = _get("/job/#{ds_project}/api/json")
       ds_build_numbers = ds_build_info["builds"].map { |x| x["number"] }
+      ds_build_counter = 0
       ds_build_numbers.each do |ds_build_num|          
+         ds_build_counter += 1
+         if ds_build_counter > 5 then
+            break 
+         end
          # see if this build is the downstream for this Blue build
          cur_ds_build = _get("/job/#{ds_project}/#{ds_build_num}/api/json")
          causes_idx = cur_ds_build["actions"].index{|x| x.has_key?("causes") }

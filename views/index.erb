@@ -10,6 +10,9 @@
     <% @builds.each do |build| %>
     <td>
        <h1><%= build[:branch]%> <small><%= build[:buildnum]%></small></h1>
+       <% if build[:result].nil? %>
+       <h2>Building...</h2>
+       <% end %>
        <ul class="failed-builds">
        <% build[:failures].each do |f| %>
           <li><%= f[:name]%></li>
@@ -17,7 +20,7 @@
        </ul>
        <ul class="all-builds">
        <% build[:downstream_builds].each do |ds| %>
-          <li class="<%= ds[:result].downcase%>"><%= ds[:name]%> </li>
+          <li class="<%= ds[:result].nil? ? 'building' : ds[:result].downcase %>"><%= ds[:name]%> </li>
        <% end %>     
        </ul>
     </td>
