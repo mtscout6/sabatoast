@@ -30,6 +30,12 @@
     <% end %>
   </tr>
   </table>
+  
+  <ul class="current-builds">
+    <% @cc_builds.each do |build| %>
+    <li class="<%= build[:status]%>"><a target="_blank" href="<%= build[:url]%>"><%= build[:name]%></a></li>
+    <% end %>
+  </ul>
 
 </body>
 </html>

@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'erb'
 require 'json'
+require 'nokogiri'
 require 'open-uri'
 
 configure do
@@ -18,19 +19,24 @@ get '/' do
   downstream_projects = get_downstream_projects 
   @builds = collect_build_details last_x_root_build_nums
   collect_downstream_build_statuses @builds, downstream_projects
-    
+  
+  @cc_builds = collect_cc_status
+      
   erb :index
 end
 
 ##################################
 
-
 def _get(url_fragment)
-  return JSON.parse(open("#{settings.jenkinsUri}#{url_fragment}", "Authorization" => "Basic " + settings.jenkinsAuth).read)
+  return open("#{settings.jenkinsUri}#{url_fragment}", "Authorization" => "Basic " + settings.jenkinsAuth)
+end
+
+def _getJSON(url_fragment)
+  return JSON.parse(_get(url_fragment).read)
 end
 
 def get_downstream_projects
-  response = _get("/job/#{settings.jenkinsJob}/api/json")
+  response = _getJSON("/job/#{settings.jenkinsJob}/api/json")
   projects = response['downstreamProjects'] || []
   projects.map {|p| p['name'] } 
   enabled_projects = projects.select {|p| p["color"] != "disabled" }
@@ -38,14 +44,14 @@ def get_downstream_projects
 end
 
 def get_last_x_build_numbers builds_to_get
- json = _get("/job/#{settings.jenkinsJob}/api/json")
+ json = _getJSON("/job/#{settings.jenkinsJob}/api/json")
  json["builds"].map {|b| b["number"] }.take(builds_to_get)
 end
 
 def collect_build_details(build_nums)
   builds = []  
   build_nums.each do |root_build_num |
-    this_build_status = _get("/job/#{settings.jenkinsJob}/#{root_build_num}/api/json")
+    this_build_status = _getJSON("/job/#{settings.jenkinsJob}/#{root_build_num}/api/json")
     this_build_result = this_build_status['result']
     idx = this_build_status["actions"].index { |a| a.has_key?("buildsByBranchName") }
     unless idx.nil?
@@ -80,7 +86,7 @@ def collect_downstream_build_statuses(root_builds, downstream_projects)
     end
     next if root_build[:result].nil? # currently running    
     downstream_projects.each do |ds_project|
-      ds_build_info = _get("/job/#{ds_project}/api/json")
+      ds_build_info = _getJSON("/job/#{ds_project}/api/json")
       ds_build_numbers = ds_build_info["builds"].map { |x| x["number"] }
       ds_build_counter = 0
       ds_build_numbers.each do |ds_build_num|          
@@ -89,7 +95,7 @@ def collect_downstream_build_statuses(root_builds, downstream_projects)
             break 
          end
          # see if this build is the downstream for this Blue build
-         cur_ds_build = _get("/job/#{ds_project}/#{ds_build_num}/api/json")
+         cur_ds_build = _getJSON("/job/#{ds_project}/#{ds_build_num}/api/json")
          causes_idx = cur_ds_build["actions"].index{|x| x.has_key?("causes") }
          upstreamBuild = cur_ds_build["actions"][causes_idx]["causes"][0]["upstreamBuild"]
          if upstreamBuild == root_build_num            
@@ -105,4 +111,27 @@ def collect_downstream_build_statuses(root_builds, downstream_projects)
     end
     root_build[:downstream_builds] = root_build[:downstream_builds].sort_by {|b| b[:name]}
   end
+end
+
+def collect_cc_status
+  cc_builds = []
+ 
+  doc = Nokogiri::XML(_get('/cc.xml'))
+
+  doc.xpath('//Projects/Project').each do |proj|
+
+    status = proj["activity"]
+    
+    status = (status == "Sleeping") ? proj["lastBuildStatus"] : status
+    
+    cur_cc_build = {
+       :name => proj["name"] + " " + proj["lastBuildLabel"],
+       :url => proj["webUrl"],
+       :status => status
+    }  
+    
+    cc_builds << cur_cc_build
+  end
+   
+  cc_builds
 end

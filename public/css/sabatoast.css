@@ -441,6 +441,11 @@ h2 {
   background-color: #FDD017;
 }
 
+.current-builds {
+  position: absolute;
+  bottom: 0px;
+}
+
 .all-builds li {
   border: 3px solid #222;
   width: 10%;
@@ -450,16 +455,25 @@ h2 {
   box-sizing: border-box;
 }
 
-.all-builds li a {
+.current-builds li {
+  border: 3px solid #222;
+  width: 3.3%;
+  float: left;
+  background-color: green;
+  text-indent: -10000px;
+  box-sizing: border-box;
+}
+
+.all-builds li a, .current-builds li a {
   padding: 20px 0;
   display: block;
 }
 
-.all-builds li.failure {
+.all-builds li.failure, .current-builds li.Failure{
   background-color: #d00;
 }
 
-.all-builds li.building {
+.all-builds li.building, .current-builds li.Building{
   background-color: #FDD017;
   color: #111;
   text-shadow: rgba(255,255,255,0.7);
