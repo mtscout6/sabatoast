@@ -426,18 +426,33 @@ ul, li {
   text-rendering: optimizelegibility;
 }
 
+h3 {
+  font-size: 30px;
+  padding: 0px;
+  margin: 19px;
+}
+
+h3 a {
+  text-decoration: none;
+  color: #fff;
+}
+
 h2 {
   background-color: #FDD017;
 }
 
 .all-builds li {
-  padding: 20px 0;
   border: 3px solid #222;
   width: 10%;
   float: left;
   background-color: green;
   text-indent: -10000px;
   box-sizing: border-box;
+}
+
+.all-builds li a {
+  padding: 20px 0;
+  display: block;
 }
 
 .all-builds li.failure {

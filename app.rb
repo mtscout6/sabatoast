@@ -61,8 +61,9 @@ def collect_build_details(build_nums)
                   :result => this_build_status["result"], 
                   :full_status => this_build_status, 
                   :downstream_builds => [],
-                  :failures => [],
-                  :overall_result => this_build_status["result"]
+                  :failures => [],                  
+                  :overall_result => this_build_status["result"],
+                  :url => this_build_status["url"]
                 }
     end
   end  
@@ -92,7 +93,7 @@ def collect_downstream_build_statuses(root_builds, downstream_projects)
          causes_idx = cur_ds_build["actions"].index{|x| x.has_key?("causes") }
          upstreamBuild = cur_ds_build["actions"][causes_idx]["causes"][0]["upstreamBuild"]
          if upstreamBuild == root_build_num            
-            ds_build_status = {:name=>ds_project, :buildnum=>ds_build_num, :result=>cur_ds_build["result"]} 
+            ds_build_status = {:name=>ds_project, :buildnum=>ds_build_num, :result=>cur_ds_build["result"], :url=>cur_ds_build["url"]} 
             if ds_build_status[:result] == "FAILURE" 
                root_build[:overall_result] = "FAILURE"
                root_build[:failures] << {:name => ds_project, :buildnum => ds_build_num}

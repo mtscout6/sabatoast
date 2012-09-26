@@ -10,7 +10,9 @@
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build[:branch]%> <small><%= build[:buildnum]%></small> <small class="sha">HEAD: <a href="https://github.com/DovetailSoftware/blue/commit/<%= build[:SHA1]%>"><%= build[:SHA1]%></a></small></h1>       
+       <h1><%= build[:branch]%> <small><a href="<%= build[:url]%>" target="_blank"><%= build[:buildnum]%></a></small></h1>
+       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build[:SHA1]%>"><%= build[:SHA1]%></a></small></h3>
+       
        <% if build[:result].nil? %>
        <h2>Building...</h2>
        <% end %>
@@ -21,7 +23,7 @@
        </ul>
        <ul class="all-builds">
        <% build[:downstream_builds].each do |ds| %>
-          <li class="<%= ds[:result].nil? ? 'building' : ds[:result].downcase %>"><%= ds[:name]%> </li>
+          <li class="<%= ds[:result].nil? ? 'building' : ds[:result].downcase %>"><a target="_blank" href="<%= ds[:url]%>" title="<%= ds[:name]%>"><%= ds[:name]%></a></li>
        <% end %>     
        </ul>
     </td>
