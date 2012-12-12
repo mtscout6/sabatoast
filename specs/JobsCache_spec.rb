@@ -3,7 +3,7 @@ require_relative './spec_helper'
 describe 'JobCache' do
 
   before :each do
-    @cache = JobCache.new
+    @cache = JobCache.new double(JenkinsRequest)
   end
 
   describe "getJob" do
