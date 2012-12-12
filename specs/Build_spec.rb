@@ -30,14 +30,16 @@ describe 'Build' do
   describe "status" do
     it "returns RUNNING if job is building" do
       stubResult('{ "building" : true, "result" : null }')
-      status = @build.status
-      status.should eq "RUNNING"
+      @requester.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.status().should eq "RUNNING"
+      @build.status().should eq "RUNNING"
     end
 
     it "returns build result if job is not building" do
-      stubResult('{ "building" : false, "result" : "SOMERESULT" }')
-      status = @build.status
-      status.should eq "SOMERESULT"
+      stubResult('{ "building" : false, "result" : "SOME RESULT" }')
+      @requester.should_receive(:getJSON).with(/tree=building,result/).once
+      @build.status().should eq "SOME RESULT"
+      @build.status().should eq "SOME RESULT"
     end
 
     def stubResult(json)
