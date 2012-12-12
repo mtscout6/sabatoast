@@ -35,7 +35,7 @@ class Job
     response["builds"]
       .map {|b| b["number"]}
       .each{|num|
-        @builds[num] = Build.new(@jobName, num) unless @builds.has_key? num
+        @builds[num] = Build.new(@jobName, num, @requester) unless @builds.has_key? num
       }
   end
 
