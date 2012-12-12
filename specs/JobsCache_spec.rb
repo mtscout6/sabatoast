@@ -4,17 +4,7 @@ describe 'JobCache' do
 
   before :each do
     @requester = double(JenkinsRequest)
-
-    @requester.stub(:getJSON) {|args|
-      if (/downstreamProjects/.match(args))
-        result = JSON.parse('{ "downstreamProjects" : [] }')
-      else
-        result = JSON.parse('{}')
-      end
-
-      result
-    }
-
+    @requester.stub(:getJSON).with(/downstreamProjects/).and_return(JSON.parse('{ "downstreamProjects" : [] }'))
     @cache = JobCache.new @requester
   end
 
