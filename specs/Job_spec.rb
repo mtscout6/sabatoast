@@ -23,11 +23,11 @@ describe 'Job' do
 
   describe "lastXBuilds" do
     before :each do
-      @requester.stub(:getJSON).and_return(JSON.parse('{ "builds" : [ { "number" : "1" }, { "number" : "2" }, { "number" : "3" }, { "number" : "4" }, { "number" : "5" }, { "number" : "6" }] }'))
+      @requester.stub(:getJSON).with(/builds/).and_return(JSON.parse('{ "builds" : [ { "number" : "1" }, { "number" : "2" }, { "number" : "3" }, { "number" : "4" }, { "number" : "5" }, { "number" : "6" }] }'))
     end
 
     it "requests build numbers" do
-      @requester.should_receive(:getJSON).once
+      @requester.should_receive(:getJSON).with(/builds/).once
       result1 = @job.lastXBuilds(1)
     end
 
@@ -49,7 +49,7 @@ describe 'Job' do
     end
 
     it "gets same instance of build with each call" do
-      @requester.should_receive(:getJSON).twice
+      @requester.should_receive(:getJSON).with(/builds/).twice
 
       result1 = @job.lastXBuilds(1)
       result2 = @job.lastXBuilds(1)
