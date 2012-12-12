@@ -11,6 +11,8 @@ class Job
     @requester = requester
 
     @baseUrl = "/job/#{jobName}/api/json"
+
+    initializeDownstreamJobs
   end
 
   def lastXBuilds(count)
@@ -21,11 +23,6 @@ class Job
       .reverse
       .map{|num| @builds[num]}
       .take(count)
-  end
-
-  def load
-    initializeBuilds
-    initializeDownstreamJobs
   end
 
   attr_reader :jobName

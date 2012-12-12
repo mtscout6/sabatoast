@@ -3,7 +3,19 @@ require_relative './spec_helper'
 describe 'JobCache' do
 
   before :each do
-    @cache = JobCache.new double(JenkinsRequest)
+    @requester = double(JenkinsRequest)
+
+    @requester.stub(:getJSON) {|args|
+      if (/downstreamProjects/.match(args))
+        result = JSON.parse('{ "downstreamProjects" : [] }')
+      else
+        result = JSON.parse('{}')
+      end
+
+      result
+    }
+
+    @cache = JobCache.new @requester
   end
 
   describe "getJob" do

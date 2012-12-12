@@ -5,6 +5,17 @@ describe 'Job' do
   before :each do
     @cache = double(JobCache)
     @requester = double(JenkinsRequest)
+
+    @requester.stub(:getJSON) {|args|
+      if (/downstreamProjects/.match(args))
+        result = JSON.parse('{ "downstreamProjects" : [] }')
+      else
+        result = JSON.parse('{}')
+      end
+
+      result
+    }
+
     @job = Job.new 'someJobName', @cache, @requester
   end
 
