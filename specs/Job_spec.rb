@@ -4,7 +4,6 @@ describe Job do
 
   before :each do
     @cache = JobCache.new
-
     @job = Job.new 'someJobName', @cache
   end
 
