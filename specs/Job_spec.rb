@@ -3,7 +3,7 @@ require_relative './spec_helper'
 describe Job do
 
   before :each do
-    @cache = double(JobCache)
+    @cache = JobCache.new
 
     @job = Job.new 'someJobName', @cache
   end
@@ -52,6 +52,52 @@ describe Job do
       result2 = @job.lastXBuilds(1)
 
       result1[0].should be result2[0]
+    end
+  end
+
+  describe 'downstreamProjects' do
+    before :each do
+      @job.stub(:getJSON).with(/downstreamProjects/).and_return(JSON.parse('{ "downstreamProjects" : [ { "name" : "proj1" }, { "name" : "proj2" }, { "name" : "proj3" }, { "name" : "proj4" } ] }'))
+    end
+
+    it 'gets list of downstream projects' do
+      projects = @job.downstreamProjects
+      projects.count.should eq 4
+    end
+
+    it 'gets same projects as found in cache' do
+      projects = @job.downstreamProjects
+      projects.each {|p| p.should be @cache.getJob p.jobName }
+    end
+
+    it 'caches the results' do
+      @job.should_receive(:getJSON).with(/downstreamProjects/).once
+      @job.downstreamProjects
+      @job.downstreamProjects
+    end
+
+    it 'caches the results for an hour' do
+      @job.should_receive(:getJSON).with(/downstreamProjects/).once
+      Time.stub(:now).and_return(Time.local(2012,1,1,1,0,0))
+      @job.downstreamProjects
+      Time.stub(:now).and_return(Time.local(2012,1,1,1,59,59))
+      @job.downstreamProjects
+    end
+
+    it 'resets cached results on the hour' do
+      @job.should_receive(:getJSON).with(/downstreamProjects/).twice
+      Time.stub(:now).and_return(Time.local(2012,1,1,1,0,0))
+      @job.downstreamProjects
+      Time.stub(:now).and_return(Time.local(2012,1,1,2,0,0))
+      @job.downstreamProjects
+    end
+
+    it 'resets cached results just after the hour' do
+      @job.should_receive(:getJSON).with(/downstreamProjects/).twice
+      Time.stub(:now).and_return(Time.local(2012,1,1,1,0,0))
+      @job.downstreamProjects
+      Time.stub(:now).and_return(Time.local(2012,1,1,2,0,1))
+      @job.downstreamProjects
     end
 
   end

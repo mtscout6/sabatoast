@@ -13,8 +13,6 @@ class Job
     @jobCache = jobCache
 
     @baseUrl = "/job/#{jobName}/api/json"
-
-    @requester = "Test"
   end
 
   def lastXBuilds(count)
@@ -25,6 +23,11 @@ class Job
       .reverse
       .map{|num| @builds[num]}
       .take(count)
+  end
+
+  def downstreamProjects
+    initializeDownstreamJobs
+    @downstreamJobs.each_value
   end
 
   attr_reader :jobName
@@ -42,13 +45,17 @@ class Job
   end
 
   def initializeDownstreamJobs
+    return unless @lastPulledDownstreamJobs.nil? || @lastPulledDownstreamJobs + (60*60) <= Time.now
+
     response = getJSON("#{@baseUrl}?tree=downstreamProjects[name]")
 
     response["downstreamProjects"]
       .map {|p| p["name"] }
       .each {|project|
-        @downstreamProjects[project] = @jobCache.getJob project unless @downstreamProjects.has_key? project
+        @downstreamJobs[project] = @jobCache.getJob project unless @downstreamJobs.has_key? project
       }
+
+    @lastPulledDownstreamJobs = Time.now
   end
 
 end
