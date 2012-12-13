@@ -4,11 +4,18 @@ require 'json'
 require 'nokogiri'
 require 'open-uri'
 
+require_relative 'src/JobCache'
+
+puts ENV["SABATOAST_JENKINS_URL"]
+puts ENV["SABATOAST_JENKINS_AUTH"]
+puts ENV["SABATOAST_JENKINS_JOB"]
+
 configure do
   set :jenkinsUri, ENV["SABATOAST_JENKINS_URL"]
   set :jenkinsAuth, ENV["SABATOAST_JENKINS_AUTH"]
   set :jenkinsJob, ENV["SABATOAST_JENKINS_JOB"]
   set :serve_static_assets, true
+  set :jobCache, JobCache.new
 end
 
 ##################################
@@ -20,6 +27,13 @@ get '/' do
   collect_downstream_build_statuses @builds, downstream_projects
   @cc_builds = collect_cc_status
   erb :index
+end
+
+get '/newIndex' do
+  job = settings.jobCache.getJob settings.jenkinsJob
+  @builds = job.lastXBuilds 3
+
+  erb :indexNew
 end
 
 ##################################
