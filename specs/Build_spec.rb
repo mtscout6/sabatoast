@@ -1,10 +1,9 @@
 require_relative './spec_helper'
 
-describe 'Build' do
+describe Build do
 
   before :each do
-    @requester = double(JenkinsRequest)
-    @build = Build.new('someJob', 5, @requester)
+    @build = Build.new('someJob', 5)
   end
 
   describe "readonly jobName property" do
@@ -30,20 +29,20 @@ describe 'Build' do
   describe "status" do
     it "returns RUNNING if job is building" do
       stubResult('{ "building" : true, "result" : null }')
-      @requester.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.should_receive(:getJSON).with(/tree=building,result/).twice
       @build.status().should eq "RUNNING"
       @build.status().should eq "RUNNING"
     end
 
     it "returns build result if job is not building" do
       stubResult('{ "building" : false, "result" : "SOME RESULT" }')
-      @requester.should_receive(:getJSON).with(/tree=building,result/).once
+      @build.should_receive(:getJSON).with(/tree=building,result/).once
       @build.status().should eq "SOME RESULT"
       @build.status().should eq "SOME RESULT"
     end
 
     def stubResult(json)
-      @requester.stub(:getJSON).with(/tree=building,result/).and_return(JSON.parse(json))
+      @build.stub(:getJSON).with(/tree=building,result/).and_return(JSON.parse(json))
     end
   end
 

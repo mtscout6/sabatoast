@@ -1,18 +1,20 @@
+require_relative './JenkinsRequest'
 require_relative './Build'
 
 class Job
-  def initialize(jobName, jobCache, requester)
+  include JenkinsRequest
+
+  def initialize(jobName, jobCache)
     @jobName = jobName
 
     @builds = Hash.new
     @downstreamJobs = Hash.new
 
     @jobCache = jobCache
-    @requester = requester
 
     @baseUrl = "/job/#{jobName}/api/json"
 
-    initializeDownstreamJobs
+    @requester = "Test"
   end
 
   def lastXBuilds(count)
@@ -30,17 +32,17 @@ class Job
   private
 
   def initializeBuilds
-    response = @requester.getJSON("#{@baseUrl}?tree=builds[number]")
+    response = getJSON("#{@baseUrl}?tree=builds[number]")
 
     response["builds"]
       .map {|b| b["number"]}
       .each{|num|
-        @builds[num] = Build.new(@jobName, num, @requester) unless @builds.has_key? num
+        @builds[num] = Build.new(@jobName, num) unless @builds.has_key? num
       }
   end
 
   def initializeDownstreamJobs
-    response = @requester.getJSON("#{@baseUrl}?tree=downstreamProjects[name]")
+    response = getJSON("#{@baseUrl}?tree=downstreamProjects[name]")
 
     response["downstreamProjects"]
       .map {|p| p["name"] }
@@ -48,4 +50,5 @@ class Job
         @downstreamProjects[project] = @jobCache.getJob project unless @downstreamProjects.has_key? project
       }
   end
+
 end

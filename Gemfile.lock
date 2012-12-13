@@ -26,5 +26,4 @@ PLATFORMS
 DEPENDENCIES
   nokogiri
   rspec
-  rspec-mocks
   sinatra

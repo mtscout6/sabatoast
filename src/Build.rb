@@ -1,8 +1,11 @@
+require_relative './JenkinsRequest'
+
 class Build
-  def initialize(jobName, buildNumber, requester)
+  include JenkinsRequest
+
+  def initialize(jobName, buildNumber)
     @jobName = jobName
     @buildNumber = buildNumber
-    @requester = requester
 
     @baseUrl = "/job/#{jobName}/#{buildNumber}/api/json"
 
@@ -20,7 +23,7 @@ class Build
   private
 
   def updateStatus
-    response = @requester.getJSON("#{@baseUrl}?tree=building,result")
+    response = getJSON("#{@baseUrl}?tree=building,result")
     @isRunning = response["building"]
     @currentStatus = response["result"] unless @isRunning
   end

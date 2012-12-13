@@ -1,13 +1,12 @@
 require_relative './Job'
 
 class JobCache
-  def initialize(requester)
+  def initialize
     @jobs = Hash.new
-    @requester = requester
   end
 
   def getJob(job)
-    @jobs[job] = Job.new(job, self, @requester) unless @jobs.has_key? job
+    @jobs[job] = Job.new(job, self) unless @jobs.has_key? job
     return @jobs[job]
   end
 end

@@ -1,11 +1,9 @@
 require_relative './spec_helper'
 
-describe 'JobCache' do
+describe JobCache do
 
   before :each do
-    @requester = double(JenkinsRequest)
-    @requester.stub(:getJSON).with(/downstreamProjects/).and_return(JSON.parse('{ "downstreamProjects" : [] }'))
-    @cache = JobCache.new @requester
+    @cache = JobCache.new
   end
 
   describe "getJob" do
