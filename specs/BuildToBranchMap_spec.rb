@@ -6,7 +6,7 @@ describe BuildToBranchMap do
     @map = BuildToBranchMap.new 'someJob'
     @map.stub(:getJSON).and_return(
       JSON.parse('{ "actions" : [ { "buildsByBranchName" : { "origin/branch1" : { "buildNumber" : 1, "buildResult" : null, "revision" : { "SHA1" : "sha-1", "branch" : [ { "SHA1" : "sha-1", "name" : "origin/branch1" } ] } }, "origin/branch2" : { "buildNumber" : 2, "buildResult" : null, "revision" : { "SHA1" : "sha-2", "branch" : [ { "SHA1" : "sha-2", "name" : "origin/branch2" } ] } }, "origin/branch3" : { "buildNumber" : 3, "buildResult" : null, "revision" : { "SHA1" : "sha-3", "branch" : [ { "SHA1" : "sha-3", "name" : "origin/branch3" } ] } } } } ] }'),
-      JSON.parse('{ "actions" : [ { "buildsByBranchName" : { "origin/branch1" : { "buildNumber" : 4, "buildResult" : null, "revision" : { "SHA4" : "sha-4", "branch" : [ { "SHA4" : "sha-4", "name" : "origin/branch1" } ] } }, "origin/branch2" : { "buildNumber" : 5, "buildResult" : null, "revision" : { "SHA1" : "sha-5", "branch" : [ { "SHA1" : "sha-5", "name" : "origin/branch2" } ] } }, "origin/branch3" : { "buildNumber" : 6, "buildResult" : null, "revision" : { "SHA1" : "sha-6", "branch" : [ { "SHA1" : "sha-6", "name" : "origin/branch3" } ] } } } } ] }'))
+      JSON.parse('{ "actions" : [ { "buildsByBranchName" : { "origin/branch1" : { "buildNumber" : 4, "buildResult" : null, "revision" : { "SHA1" : "sha-4", "branch" : [ { "SHA1" : "sha-4", "name" : "origin/branch1" } ] } }, "origin/branch2" : { "buildNumber" : 5, "buildResult" : null, "revision" : { "SHA1" : "sha-5", "branch" : [ { "SHA1" : "sha-5", "name" : "origin/branch2" } ] } }, "origin/branch3" : { "buildNumber" : 6, "buildResult" : null, "revision" : { "SHA1" : "sha-6", "branch" : [ { "SHA1" : "sha-6", "name" : "origin/branch3" } ] } } } } ] }'))
   end
 
   describe '#branchFor' do
@@ -34,6 +34,34 @@ describe BuildToBranchMap do
       @map.branchFor(4).should eq 'branch1'
       @map.branchFor(5).should eq 'branch2'
       @map.branchFor(6).should eq 'branch3'
+    end
+  end
+
+  describe '#shaFor' do
+    it 'requests branch info' do
+      @map.should_receive(:getJSON).once
+      @map.shaFor 1
+      @map.shaFor 2
+      @map.shaFor 3
+    end
+
+    it 'requests branch info if build is not in cache' do
+      @map.should_receive(:getJSON).twice
+      @map.shaFor 1
+      @map.shaFor 2
+      @map.shaFor 3
+      @map.shaFor 4
+      @map.shaFor 5
+      @map.shaFor 6
+    end
+
+    it 'returns the branch name' do
+      @map.shaFor(1).should eq 'sha-1'
+      @map.shaFor(2).should eq 'sha-2'
+      @map.shaFor(3).should eq 'sha-3'
+      @map.shaFor(4).should eq 'sha-4'
+      @map.shaFor(5).should eq 'sha-5'
+      @map.shaFor(6).should eq 'sha-6'
     end
   end
 

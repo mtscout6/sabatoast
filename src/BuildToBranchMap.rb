@@ -11,16 +11,11 @@ class BuildToBranchMap
   end
 
   def branchFor(buildNumber)
-    return @buildNumberToBranch[buildNumber] if @buildNumberToBranch.has_key? buildNumber
+    getBranchInfo(buildNumber)[:branch]
+  end
 
-    getBranchInfo(buildNumber).each{|build|
-      @buildNumberToBranch[build[:num]] = build[:branch] unless @buildNumberToBranch.has_key? build[:num]
-
-      @branchToBuildNumbers[build[:branch]] = SortedSet.new unless @branchToBuildNumbers.has_key? build[:branch]
-      @branchToBuildNumbers[build[:branch]].add build[:num]
-    }
-
-    @buildNumberToBranch[buildNumber]
+  def shaFor(buildNumber)
+    getBranchInfo(buildNumber)[:sha]
   end
 
   def buildNumbersFor(branch)
@@ -34,6 +29,8 @@ class BuildToBranchMap
   private
 
   def getBranchInfo(buildNumber)
+    return @buildNumberToBranch[buildNumber] if @buildNumberToBranch.has_key? buildNumber
+
     response = getJSON("/job/#{@jobName}/#{buildNumber}/api/json")
 
     idx = response["actions"].index { |a| a.has_key?("buildsByBranchName") }
@@ -44,8 +41,17 @@ class BuildToBranchMap
         {
           :num => build["buildNumber"],
           :branch => build["revision"]["branch"][0]["name"].sub(/origin\//, ''),
+          :sha => build["revision"]["branch"][0]["SHA1"]
         }
       }
+      .each{|build|
+        @buildNumberToBranch[build[:num]] = {:branch => build[:branch], :sha => build[:sha]} unless @buildNumberToBranch.has_key? build[:num]
+
+        @branchToBuildNumbers[build[:branch]] = SortedSet.new unless @branchToBuildNumbers.has_key? build[:branch]
+        @branchToBuildNumbers[build[:branch]].add build[:num]
+      }
+
+    @buildNumberToBranch[buildNumber]
   end
 
 end
