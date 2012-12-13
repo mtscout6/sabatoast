@@ -56,4 +56,21 @@ describe Build do
     end
   end
 
+  describe "#sha" do
+    before :each do
+      @map = double(BuildToBranchMap)
+      @job.stub(:buildToBranchMap).and_return(@map)
+    end
+
+    it 'retrieves no commit sha' do
+      @map.stub(:shaFor).and_return(nil)
+      @build.sha.should eq nil
+    end
+
+    it 'retrieves the commit sha' do
+      @map.stub(:shaFor).and_return('sha-test')
+      @build.sha.should eq 'sha-test'
+    end
+  end
+
 end

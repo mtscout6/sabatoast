@@ -22,6 +22,10 @@ class Build
     @job.buildToBranchMap.branchFor buildNumber
   end
 
+  def sha
+    @job.buildToBranchMap.shaFor buildNumber
+  end
+
   attr_reader :buildNumber
 
   private
