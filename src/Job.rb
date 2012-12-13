@@ -1,5 +1,6 @@
 require_relative './JenkinsRequest'
 require_relative './Build'
+require_relative './BuildToBranchMap'
 
 class Job
   include JenkinsRequest
