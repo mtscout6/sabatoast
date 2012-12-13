@@ -3,20 +3,13 @@ require_relative './spec_helper'
 describe Build do
 
   before :each do
-    @build = Build.new('someJob', 5)
+    @job = double(Job)
+    @job.stub(:jobName).and_return('someJob')
+
+    @build = Build.new(@job, 5)
   end
 
-  describe "readonly jobName property" do
-    it "returns job name" do
-      @build.jobName.should eq 'someJob'
-    end
-
-    it "cannot be set externally" do
-      lambda { @build.jobName = 'newJobName' }.should raise_error(NoMethodError)
-    end
-  end
-
-  describe "readonly buildNumber property" do
+  describe "#buildNumber" do
     it "returns build number" do
       @build.buildNumber.should eq 5
     end
@@ -26,7 +19,7 @@ describe Build do
     end
   end
 
-  describe "status" do
+  describe "#status" do
     it "returns RUNNING if job is building" do
       stubResult('{ "building" : true, "result" : null }')
       @build.should_receive(:getJSON).with(/tree=building,result/).twice
@@ -43,6 +36,23 @@ describe Build do
 
     def stubResult(json)
       @build.stub(:getJSON).with(/tree=building,result/).and_return(JSON.parse(json))
+    end
+  end
+
+  describe "#branch" do
+    before :each do
+      @map = double(BuildToBranchMap)
+      @job.stub(:buildToBranchMap).and_return(@map)
+    end
+
+    it 'retrieves no name' do
+      @map.stub(:branchFor).and_return(nil)
+      @build.branch.should eq nil
+    end
+
+    it 'retrieves the branch name' do
+      @map.stub(:branchFor).and_return('someBranch')
+      @build.branch.should eq 'someBranch'
     end
   end
 

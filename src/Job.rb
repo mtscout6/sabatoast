@@ -30,6 +30,11 @@ class Job
     @downstreamJobs.each_value
   end
 
+  def buildToBranchMap
+    @branchMap = BuildToBranchMap.new @jobName if @branchMap.nil?
+    @branchMap
+  end
+
   attr_reader :jobName
 
   private
@@ -40,7 +45,7 @@ class Job
     response["builds"]
       .map {|b| b["number"]}
       .each{|num|
-        @builds[num] = Build.new(@jobName, num) unless @builds.has_key? num
+        @builds[num] = Build.new(self, num) unless @builds.has_key? num
       }
   end
 

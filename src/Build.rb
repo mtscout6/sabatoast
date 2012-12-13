@@ -3,22 +3,26 @@ require_relative './JenkinsRequest'
 class Build
   include JenkinsRequest
 
-  def initialize(jobName, buildNumber)
-    @jobName = jobName
+  def initialize(job, buildNumber)
+    @job = job
     @buildNumber = buildNumber
 
-    @baseUrl = "/job/#{jobName}/#{buildNumber}/api/json"
+    @baseUrl = "/job/#{@job.jobName}/#{buildNumber}/api/json"
 
     @isRunning = true
     @currentStatus = "RUNNING"
   end
 
-  def status()
+  def status
     updateStatus if @isRunning
     @currentStatus
   end
 
-  attr_reader :jobName, :buildNumber
+  def branch
+    @job.buildToBranchMap.branchFor buildNumber
+  end
+
+  attr_reader :buildNumber
 
   private
 
