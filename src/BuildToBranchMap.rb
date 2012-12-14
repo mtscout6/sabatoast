@@ -11,11 +11,11 @@ class BuildToBranchMap
   end
 
   def branchFor(buildNumber)
-    getBranchInfo(buildNumber)[:branch]
+    getBranchInfo(buildNumber, :branch)
   end
 
   def shaFor(buildNumber)
-    getBranchInfo(buildNumber)[:sha]
+    getBranchInfo(buildNumber, :sha)
   end
 
   def buildNumbersFor(branch)
@@ -28,12 +28,16 @@ class BuildToBranchMap
 
   private
 
-  def getBranchInfo(buildNumber)
-    return @buildNumberToBranch[buildNumber] if @buildNumberToBranch.has_key? buildNumber
+  def getBranchInfo(buildNumber, key)
+    retrieveBranchInfo(buildNumber) unless @buildNumberToBranch.has_key? buildNumber
+    @buildNumberToBranch[buildNumber][key]
+  end
 
+  def retrieveBranchInfo(buildNumber)
     response = getJSON("/job/#{@jobName}/#{buildNumber}/api/json")
 
     idx = response["actions"].index { |a| a.has_key?("buildsByBranchName") }
+    setBranchToDefault buildNumber if idx.nil?
     return if idx.nil?
 
     response["actions"][idx]["buildsByBranchName"].values
@@ -51,7 +55,10 @@ class BuildToBranchMap
         @branchToBuildNumbers[build[:branch]].add build[:num]
       }
 
-    @buildNumberToBranch[buildNumber]
+    setBranchToDefault buildNumber
   end
 
+  def setBranchToDefault(buildNumber)
+    @buildNumberToBranch[buildNumber] = {:branch => nil, :sha => nil} unless @buildNumberToBranch[buildNumber]
+  end
 end

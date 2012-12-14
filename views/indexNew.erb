@@ -24,13 +24,13 @@
        <ul class="all-builds">
        <% build[:downstream_builds].each do |ds| %>
           <li class="<%= ds[:result].nil? ? 'building' : ds[:result].downcase %>"><a target="_blank" href="<%= ds[:url]%>" title="<%= ds[:name]%>"><%= ds[:name]%></a></li>
-       <% end %>     
+       <% end %>
        </ul>
     </td>
     <% end %>
   </tr>
   </table>
-  
+
   <ul class="current-builds">
     <% @cc_builds.each do |build| %>
     <li class="<%= build[:status]%>"><a target="_blank" href="<%= build[:url]%>"><%= build[:name]%></a></li>

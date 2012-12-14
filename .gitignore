@@ -12,7 +12,7 @@ test/tmp
 test/version_tmp
 tmp
 *.orig
-run.sh
+run
 
 # YARD artifacts
 .yardoc
