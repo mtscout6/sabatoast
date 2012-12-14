@@ -7,7 +7,8 @@ class Build
     @job = job
     @buildNumber = buildNumber
 
-    @baseUrl = "/job/#{@job.jobName}/#{buildNumber}/api/json"
+    @url = "/job/#{@job.jobName}/#{buildNumber}"
+    @apiUrl = "/#{@url}/api/json"
 
     @isRunning = true
     @currentStatus = "RUNNING"
@@ -26,12 +27,12 @@ class Build
     @job.buildToBranchMap.shaFor buildNumber
   end
 
-  attr_reader :buildNumber
+  attr_reader :buildNumber, :url
 
   private
 
   def updateStatus
-    response = getJSON("#{@baseUrl}?tree=building,result")
+    response = getJSON("#{@apiUrl}?tree=building,result")
     @isRunning = response["building"]
     @currentStatus = response["result"] unless @isRunning
   end

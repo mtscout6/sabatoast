@@ -19,6 +19,16 @@ describe Build do
     end
   end
 
+  describe "#url" do
+    it "returns build url" do
+      @build.url.should eq "/job/someJob/5"
+    end
+
+    it "cannot be set externally" do
+      lambda { @build.url = "otherUrl" }.should raise_error(NoMethodError)
+    end
+  end
+
   describe "#status" do
     it "returns RUNNING if job is building" do
       stubResult('{ "building" : true, "result" : null }')

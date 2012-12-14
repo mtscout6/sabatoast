@@ -10,8 +10,8 @@
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build.branch %> <small><a href="<%= build[:url]%>" target="_blank"><%= build[:buildnum]%></a></small></h1>
-       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build[:SHA1]%>"><%= build[:SHA1]%></a></small></h3>
+       <h1><%= build.branch %> <small><a href="<%= build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
+       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>"><%= build.sha %></a></small></h3>
 
        <% if build[:result].nil? %>
        <h2>Building...</h2>
