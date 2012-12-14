@@ -13,7 +13,7 @@
        <h1><%= build.branch %> <small><a href="<%= build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
        <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>"><%= build.sha %></a></small></h3>
 
-       <% if build[:result].nil? %>
+       <% if build.status == "RUNNING" %>
        <h2>Building...</h2>
        <% end %>
        <ul class="failed-builds">
