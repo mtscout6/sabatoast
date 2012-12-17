@@ -83,4 +83,74 @@ describe Build do
     end
   end
 
+  describe '#upstreamBuild' do
+    before :each do
+      @cache = double(JobCache)
+
+      @upstreamJob = double(Job)
+      @upstreamJob.stub(:jobName).and_return('upstreamJob')
+
+      @upstreamBuild = Build.new(@upstreamJob, 3)
+
+      @upstreamJob.stub(:getBuild).with(3).and_return(@upstreamBuild)
+      @cache.stub(:getJob).with("upstreamJob").and_return(@upstreamJob)
+
+      @build.stub(:jobCache).and_return @cache
+    end
+
+    describe 'with upstream' do
+      before :each do
+        @build.stub(:getJSON).with(/tree=actions\[causes/).and_return(JSON.parse('{ "actions" : [ { "causes" : [ { "upstreamBuild" : 3, "upstreamProject" : "upstreamJob" }, { }, { } ] }, { }, { }, { } ] }'))
+      end
+
+      it 'caches the result' do
+        @build.should_receive(:getJSON).with(/tree=actions\[causes/).once
+        first = @build.upstreamBuild
+        second = @build.upstreamBuild
+
+        first.should be second
+      end
+
+      it 'returns the upstream build' do
+        @build.upstreamBuild.should be_an_instance_of Build
+        @build.upstreamBuild.buildNumber.should eq 3
+        @build.upstreamBuild.job.jobName.should eq 'upstreamJob'
+      end
+
+      it 'adds itself to the upstream builds list of child builds' do
+        @upstreamBuild.should_receive(:addDownstreamBuild).with(@build).once
+        @build.upstreamBuild
+      end
+    end
+
+    describe 'without upstream' do
+      before :each do
+        @build.stub(:getJSON).with(/tree=actions\[causes/).and_return(JSON.parse('{ "actions" : [ { "causes" : [ { }, { }, { } ] }, { }, { }, { } ] }'))
+      end
+
+      it 'caches the result' do
+        @build.should_receive(:getJSON).with(/tree=actions\[causes/).once
+        first = @build.upstreamBuild
+        second = @build.upstreamBuild
+
+        first.should be second
+      end
+
+      it 'returns nil' do
+        @build.upstreamBuild.should be nil
+      end
+
+      it 'does not add itself to an upstream build' do
+        @upstreamBuild.should_receive(:addDownstreamBuild).with(@build).never
+        @build.upstreamBuild
+      end
+    end
+  end
+
+  describe '#addDownstreamBuild' do
+    it 'should be implemented' do
+      2.should eq 1
+    end
+  end
+
 end

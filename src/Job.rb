@@ -26,6 +26,10 @@ class Job
       .take(count)
   end
 
+  def getBuild(buildNumber)
+    # TODO: Implement
+  end
+
   def downstreamProjects
     initializeDownstreamJobs
     @downstreamJobs.each_value
@@ -36,7 +40,7 @@ class Job
     @branchMap
   end
 
-  attr_reader :jobName
+  attr_reader :jobName, :jobCache
 
   private
 
