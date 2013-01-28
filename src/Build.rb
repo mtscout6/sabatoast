@@ -10,6 +10,8 @@ class Build
     @url = "/job/#{@job.jobName}/#{buildNumber}"
     @apiUrl = "/#{@url}/api/json"
 
+    @downstreamBuilds = Hash.new
+
     @isRunning = true
     @currentStatus = "RUNNING"
   end
@@ -24,7 +26,10 @@ class Build
   end
 
   def sha
-    @job.buildToBranchMap.shaFor buildNumber
+    shortSha = nil
+    longSha = @job.buildToBranchMap.shaFor(buildNumber)
+    shortSha = longSha[0,6] unless longSha.nil?
+    shortSha
   end
 
   def upstreamBuild
@@ -32,8 +37,23 @@ class Build
     @upstreamBuild
   end
 
+  def downstreamBuilds
+    @job.downstreamProjects.each do |project|
+      hasBuild = @downstreamBuilds.has_key?(project.jobName) && @downstreamBuilds[project.jobName].kind_of?(Build)
+
+      unless hasBuild
+        build = project.lastXBuilds(nil).find() {|b| b.upstreamBuild == self }
+        build = TemporaryBuild.new(project, self) if build.nil?
+      end
+
+      @downstreamBuilds[project.jobName] = build
+    end
+
+    @downstreamBuilds.each_value.reject{|x| x.nil?}.map{|x| x}
+  end
+
   def addDownstreamBuild(build)
-    # TODO Implement
+    @downstreamBuilds[build.job.jobName] = build
   end
 
   attr_reader :buildNumber, :url, :job
@@ -74,7 +94,18 @@ class Build
   end
 
   def jobCache
-    @job.jobCache
+    JobCache.instance
   end
 
+end
+
+class TemporaryBuild
+  def initialize(job, upstreamBuild)
+    @upstreamBuild = upstreamBuild
+    @status = 'NOTRUN'
+    @url = '#'
+    @job = job
+  end
+
+  attr_reader :upstreamBuild, :status, :url, :job
 end

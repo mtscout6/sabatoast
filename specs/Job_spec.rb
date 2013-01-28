@@ -3,11 +3,12 @@ require_relative './spec_helper'
 describe Job do
 
   before :each do
-    @cache = JobCache.new
-    @job = Job.new 'someJobName', @cache
+    @cache = double(JobCache)
+    @job = Job.new 'someJobName'
+    @job.stub(:jobCache).and_return(@cache)
   end
 
-  describe "readonly jobName property" do
+  describe "#jobName" do
     it "returns job name" do
       @job.jobName.should eq 'someJobName'
     end
@@ -17,7 +18,7 @@ describe Job do
     end
   end
 
-  describe "lastXBuilds" do
+  describe "#lastXBuilds" do
     before :each do
       @job.stub(:getJSON).with(/builds/).and_return(JSON.parse('{ "builds" : [ { "number" : "1" }, { "number" : "2" }, { "number" : "3" }, { "number" : "4" }, { "number" : "5" }, { "number" : "6" }] }'))
     end
@@ -52,11 +53,23 @@ describe Job do
 
       result1[0].should be result2[0]
     end
+
+    it 'passing nil returns all builds' do
+      result = @job.lastXBuilds nil
+      result.length.should eq 6
+    end
   end
 
-  describe 'downstreamProjects' do
+  describe '#downstreamProjects' do
     before :each do
       @job.stub(:getJSON).with(/downstreamProjects/).and_return(JSON.parse('{ "downstreamProjects" : [ { "name" : "proj1" }, { "name" : "proj2" }, { "name" : "proj3" }, { "name" : "proj4" } ] }'))
+
+      for i in 1..4 do
+        downstreamJob = double(Job)
+        name = "proj#{i}"
+        downstreamJob.stub(:jobName).and_return(name)
+        @cache.stub(:getJob).with(name).and_return(downstreamJob)
+      end
     end
 
     it 'gets list of downstream projects' do
@@ -98,7 +111,24 @@ describe Job do
       Time.stub(:now).and_return(Time.local(2012,1,1,2,0,1))
       @job.downstreamProjects
     end
+  end
 
+  describe '#getBuild' do
+    before :each do
+      @job.stub(:getJSON).with(/builds/).and_return(JSON.parse('{ "builds" : [ { "number" : "1" }, { "number" : "2" }, { "number" : "3" }, { "number" : "4" }, { "number" : "5" }, { "number" : "6" }] }'))
+    end
+
+    it 'gets build by number' do
+      build = @job.getBuild(1)
+      build.buildNumber.should eq 1
+      build.should be @job.getBuild(1)
+    end
+
+    it 'creates a build if it does not exist alread' do
+      build = @job.getBuild(99)
+      build.buildNumber.should eq 99
+      build.should be @job.getBuild(99)
+    end
   end
 
 end

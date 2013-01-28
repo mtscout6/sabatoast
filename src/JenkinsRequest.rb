@@ -1,6 +1,7 @@
 require 'json'
 require 'nokogiri'
 require 'open-uri'
+require 'logger'
 
 module JenkinsRequest
 

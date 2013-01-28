@@ -15,7 +15,6 @@ configure do
   set :jenkinsAuth, ENV["SABATOAST_JENKINS_AUTH"]
   set :jenkinsJob, ENV["SABATOAST_JENKINS_JOB"]
   set :serve_static_assets, true
-  set :jobCache, JobCache.new
 end
 
 ##################################
@@ -30,7 +29,7 @@ get '/' do
 end
 
 get '/newIndex' do
-  job = settings.jobCache.getJob settings.jenkinsJob
+  job = JobCache.instance.getJob settings.jenkinsJob
   @builds = job.lastXBuilds 3
 
   erb :indexNew

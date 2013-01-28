@@ -473,7 +473,11 @@ h2 {
   background-color: #d00;
 }
 
-.all-builds li.building, .current-builds li.Building{
+.all-builds li.notrun{
+  background-color: #878787;
+}
+
+.all-builds li.running, .current-builds li.Building{
   background-color: #FDD017;
   color: #111;
   text-shadow: rgba(255,255,255,0.7);

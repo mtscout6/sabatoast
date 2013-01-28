@@ -5,13 +5,11 @@ require_relative './BuildToBranchMap'
 class Job
   include JenkinsRequest
 
-  def initialize(jobName, jobCache)
+  def initialize(jobName)
     @jobName = jobName
 
     @builds = Hash.new
     @downstreamJobs = Hash.new
-
-    @jobCache = jobCache
 
     @baseUrl = "/job/#{jobName}/api/json"
   end
@@ -19,15 +17,20 @@ class Job
   def lastXBuilds(count)
     initializeBuilds
 
-    @builds.keys
+    builds = @builds.keys
       .sort
       .reverse
       .map{|num| @builds[num]}
-      .take(count)
+
+    builds = builds.take(count) unless count.nil?
+    builds
   end
 
   def getBuild(buildNumber)
-    # TODO: Implement
+    return @builds[buildNumber] if @builds.has_key? buildNumber
+
+    @builds[buildNumber] = Build.new(self, buildNumber)
+    @builds[buildNumber]
   end
 
   def downstreamProjects
@@ -40,7 +43,7 @@ class Job
     @branchMap
   end
 
-  attr_reader :jobName, :jobCache
+  attr_reader :jobName
 
   private
 
@@ -62,10 +65,14 @@ class Job
     response["downstreamProjects"]
       .map {|p| p["name"] }
       .each {|project|
-        @downstreamJobs[project] = @jobCache.getJob project unless @downstreamJobs.has_key? project
+        @downstreamJobs[project] = jobCache.getJob project unless @downstreamJobs.has_key? project
       }
 
     @lastPulledDownstreamJobs = Time.now
+  end
+
+  def jobCache
+    JobCache.instance
   end
 
 end

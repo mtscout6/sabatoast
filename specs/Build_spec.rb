@@ -77,9 +77,9 @@ describe Build do
       @build.sha.should eq nil
     end
 
-    it 'retrieves the commit sha' do
+    it 'retrieves the shortened commit sha' do
       @map.stub(:shaFor).and_return('sha-test')
-      @build.sha.should eq 'sha-test'
+      @build.sha.should eq 'sha-test'[0,6]
     end
   end
 
@@ -148,8 +148,121 @@ describe Build do
   end
 
   describe '#addDownstreamBuild' do
-    it 'should be implemented' do
-      2.should eq 1
+    before :each do
+      def @build.downstreamBuildsRaw
+        @downstreamBuilds.each_value.map{|x| x}
+      end
+    end
+
+    it 'returns empty list' do
+      downstreamBuilds = @build.downstreamBuildsRaw
+      downstreamBuilds.length.should eq 0
+    end
+
+    it 'adds build to list' do
+      downstreamJob = double(Job)
+      downstreamJob.stub(:jobName).and_return('downstreamJob')
+
+      downstreamBuild = Build.new(downstreamJob, 15)
+      @build.addDownstreamBuild downstreamBuild
+
+      downstreamBuilds = @build.downstreamBuildsRaw
+      downstreamBuilds.length.should eq 1
+
+      downstreamBuilds[0].should be downstreamBuild
+    end
+
+    it 'stores the last build by job' do
+      downstreamJob = double(Job)
+      downstreamJob.stub(:jobName).and_return('downstreamJob')
+
+      downstreamBuild1 = Build.new(downstreamJob, 15)
+      downstreamBuild2 = Build.new(downstreamJob, 16)
+
+      @build.addDownstreamBuild downstreamBuild1
+      @build.addDownstreamBuild downstreamBuild2
+
+      downstreamBuilds = @build.downstreamBuildsRaw
+      downstreamBuilds.length.should eq 1
+
+      downstreamBuilds[0].should be downstreamBuild2
+    end
+
+    it 'stores all downstream builds by job' do
+      downstreamJob1 = double(Job)
+      downstreamJob1.stub(:jobName).and_return('downstreamJob1')
+      downstreamJob2 = double(Job)
+      downstreamJob2.stub(:jobName).and_return('downstreamJob2')
+
+      downstreamBuild1 = Build.new(downstreamJob1, 15)
+      downstreamBuild2 = Build.new(downstreamJob2, 16)
+
+      @build.addDownstreamBuild downstreamBuild1
+      @build.addDownstreamBuild downstreamBuild2
+
+      downstreamBuilds = @build.downstreamBuildsRaw
+      downstreamBuilds.length.should eq 2
+
+      downstreamBuilds[0].should be downstreamBuild1
+      downstreamBuilds[1].should be downstreamBuild2
+    end
+  end
+
+  describe '#downstreamBuilds' do
+    before :each do
+      @jobCache = double(JobCache)
+      @jobCache.stub(:getJob).with(@job.jobName).and_return(@job)
+
+      @job.stub(:getBuild).with(5).and_return(@build)
+
+      @downstreamJobs = []
+      for i in 1..5
+        downstreamJob = double(Job)
+        downstreamJob.stub(:jobName).and_return("downstreamJob#{i}")
+
+        builds = []
+
+        for j in 1..5
+          b = Build.new(downstreamJob, i*j)
+          b.stub(:getUpstreamBuild).and_return(nil)
+          builds << b
+        end
+
+        downstreamJob.stub(:jobCache).and_return(@jobCache)
+        downstreamJob.stub(:lastXBuilds).with(nil).and_return(builds)
+        @downstreamJobs << downstreamJob
+      end
+
+      @job.stub(:downstreamProjects).and_return(@downstreamJobs)
+    end
+
+    it 'build temporary builds' do
+      builds = @build.downstreamBuilds
+      builds.length.should eq @downstreamJobs.length
+      builds.each {|b|
+        b.should be_an_instance_of TemporaryBuild
+        b.status.should eq 'NOTRUN'
+      }
+    end
+
+    it 'returns downstream build if has been started' do
+      expBuild = @downstreamJobs[0].lastXBuilds(nil)[0]
+      expBuild.stub(:upstreamBuild).and_return(@build)
+
+      builds = @build.downstreamBuilds
+      builds.length.should eq @downstreamJobs.length
+
+      nonTemp = builds.find {|b| b.kind_of? Build}
+      nonTemp.nil?.should eq false
+      nonTemp.should be expBuild
+
+      builds.reject{|b|
+        b.kind_of? Build
+      }
+      .each {|b|
+        b.should be_an_instance_of TemporaryBuild
+        b.status.should eq 'NOTRUN'
+      }.count.should eq 4
     end
   end
 
