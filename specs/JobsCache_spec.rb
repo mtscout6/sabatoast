@@ -23,5 +23,9 @@ describe JobCache do
 
       job1.should_not be job2
     end
+
+    it "should be singleton" do
+      JobCache.instance.object_id.should be JobCache.instance.object_id
+    end
   end
 end
