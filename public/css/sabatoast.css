@@ -369,6 +369,8 @@ textarea {
  * Remove most spacing between table cells.
  */
 
+
+/* color: https://kuler.adobe.com/#themeID/124057 */
 table {
     border-collapse: collapse;
     border-spacing: 0;
