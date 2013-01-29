@@ -22,7 +22,8 @@ class Build
   end
 
   def branch
-    @job.buildToBranchMap.branchFor buildNumber
+    result = @job.buildToBranchMap.branchFor buildNumber
+    result.gsub(/(_|\-)/,' ').gsub(/([a-z])([A-Z])/,' ')
   end
 
   def sha
