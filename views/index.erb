@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Sabatoast</title>
-  <meta http-equiv="refresh" content="30">
+  <!--meta http-equiv="refresh" content="30"-->
   <link href="css/sabatoast.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -10,8 +10,13 @@
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build.branch %> <small><a href="<%= settings.jenkinsUri + build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
-       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>"><%= build.sha %></a></small></h3>
+       <h1>
+         <%= build.branch %>
+       </h1>
+       <div class="details">
+          <a class="build" href="<%= settings.jenkinsUri + build.url %>" target="_blank">build: <%= build.buildNumber %></a> &nbsp;
+          <a class="sha" target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>">git: <%= build.sha %></a>
+       </div>
 
        <% if build.status == "RUNNING" %>
        <h2>Building...</h2>
