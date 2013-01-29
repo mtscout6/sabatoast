@@ -219,6 +219,7 @@ describe Build do
       for i in 1..5
         downstreamJob = double(Job)
         downstreamJob.stub(:jobName).and_return("downstreamJob#{i}")
+        downstreamJob.stub(:url).and_return("downstreamUrl#{i}")
 
         builds = []
 
@@ -249,6 +250,27 @@ describe Build do
       expBuild = @downstreamJobs[0].lastXBuilds(nil)[0]
       expBuild.stub(:upstreamBuild).and_return(@build)
 
+      builds = @build.downstreamBuilds
+      builds.length.should eq @downstreamJobs.length
+
+      nonTemp = builds.find {|b| b.kind_of? Build}
+      nonTemp.nil?.should eq false
+      nonTemp.should be expBuild
+
+      builds.reject{|b|
+        b.kind_of? Build
+      }
+      .each {|b|
+        b.should be_an_instance_of TemporaryBuild
+        b.status.should eq 'NOTRUN'
+      }.count.should eq 4
+    end
+
+    it 'returns downstream build if has been started every time' do
+      expBuild = @downstreamJobs[0].lastXBuilds(nil)[0]
+      expBuild.stub(:upstreamBuild).and_return(@build)
+
+      builds = @build.downstreamBuilds
       builds = @build.downstreamBuilds
       builds.length.should eq @downstreamJobs.length
 

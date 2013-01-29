@@ -11,7 +11,8 @@ class Job
     @builds = Hash.new
     @downstreamJobs = Hash.new
 
-    @baseUrl = "/job/#{jobName}/api/json"
+    @url = "/job/#{jobName}"
+    @baseUrl = "#{url}/api/json"
   end
 
   def lastXBuilds(count)
@@ -43,12 +44,17 @@ class Job
     @branchMap
   end
 
-  attr_reader :jobName
+  attr_reader :jobName, :url
 
   private
 
   def initializeBuilds
+    return unless @lastPulledBuildNumbers.nil? || @lastPulledBuildNumbers + (30) <= Time.now
+    @lastPulledBuildNumbers = Time.now
+
     response = getJSON("#{@baseUrl}?tree=builds[number]")
+
+    # TODO: Remove old builds no longer seen on Jenkins
 
     response["builds"]
       .map {|b| b["number"]}
@@ -58,7 +64,9 @@ class Job
   end
 
   def initializeDownstreamJobs
+    # Pull once every hour
     return unless @lastPulledDownstreamJobs.nil? || @lastPulledDownstreamJobs + (60*60) <= Time.now
+    @lastPulledDownstreamJobs = Time.now
 
     response = getJSON("#{@baseUrl}?tree=downstreamProjects[name]")
 
@@ -67,12 +75,9 @@ class Job
       .each {|project|
         @downstreamJobs[project] = jobCache.getJob project unless @downstreamJobs.has_key? project
       }
-
-    @lastPulledDownstreamJobs = Time.now
   end
 
   def jobCache
     JobCache.instance
   end
-
 end

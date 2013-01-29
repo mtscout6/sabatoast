@@ -6,6 +6,7 @@ require 'logger'
 module JenkinsRequest
 
   def getJSON(url_fragment)
+    puts "Requesting #{url_fragment} from Jenkins"
     return JSON.parse(_get(url_fragment).read)
   end
 

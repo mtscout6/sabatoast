@@ -10,7 +10,7 @@
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build.branch %> <small><a href="<%= build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
+       <h1><%= build.branch %> <small><a href="<%= settings.jenkinsUri + build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
        <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>"><%= build.sha %></a></small></h3>
 
        <% if build.status == "RUNNING" %>
@@ -18,12 +18,12 @@
        <% end %>
        <ul class="failed-builds">
        <% build.downstreamBuilds.select{|b| b.status == "FAILURE" }.each do |failedBuild| %>
-          <li><%= failedBuild.job.jobName %></li>
+         <li><%= failedBuild.job.jobName %></li>
        <% end %>
        </ul>
        <ul class="all-builds">
        <% build.downstreamBuilds.each do |ds| %>
-          <li class="<%= ds.status.downcase %>"><a target="_blank" href="<%= ds.url %>" title="<%= ds.job.jobName%>"><%= ds.job.jobName %></a></li>
+          <li class="<%= ds.status.downcase %>"><a target="_blank" href="<%= settings.jenkinsUri + ds.url %>" title="<%= ds.job.jobName%>"><%= ds.job.jobName %></a></li>
        <% end %>
        </ul>
     </td>

@@ -30,7 +30,7 @@ end
 
 get '/newIndex' do
   job = JobCache.instance.getJob settings.jenkinsJob
-  @builds = job.lastXBuilds 3
+  @builds = job.lastXBuilds 5
 
   erb :indexNew
 end

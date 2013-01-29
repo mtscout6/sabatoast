@@ -46,8 +46,6 @@ describe Job do
     end
 
     it "gets same instance of build with each call" do
-      @job.should_receive(:getJSON).with(/builds/).twice
-
       result1 = @job.lastXBuilds(1)
       result2 = @job.lastXBuilds(1)
 

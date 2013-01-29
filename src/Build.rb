@@ -8,7 +8,7 @@ class Build
     @buildNumber = buildNumber
 
     @url = "/job/#{@job.jobName}/#{buildNumber}"
-    @apiUrl = "/#{@url}/api/json"
+    @apiUrl = "#{@url}/api/json"
 
     @downstreamBuilds = Hash.new
 
@@ -44,12 +44,11 @@ class Build
       unless hasBuild
         build = project.lastXBuilds(nil).find() {|b| b.upstreamBuild == self }
         build = TemporaryBuild.new(project, self) if build.nil?
+        @downstreamBuilds[project.jobName] = build
       end
-
-      @downstreamBuilds[project.jobName] = build
     end
 
-    @downstreamBuilds.each_value.reject{|x| x.nil?}.map{|x| x}
+    @downstreamBuilds.each_value.map{|x| x}
   end
 
   def addDownstreamBuild(build)
@@ -103,7 +102,7 @@ class TemporaryBuild
   def initialize(job, upstreamBuild)
     @upstreamBuild = upstreamBuild
     @status = 'NOTRUN'
-    @url = '#'
+    @url = job.url
     @job = job
   end
 
