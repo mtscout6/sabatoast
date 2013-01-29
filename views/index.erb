@@ -23,7 +23,7 @@
        <% end %>
        <ul class="failed-builds">
        <% build.downstreamBuilds.select{|b| b.status == "FAILURE" }.each do |failedBuild| %>
-         <li><%= failedBuild.job.jobName %></li>
+         <a target="_blank" href="<%= settings.jenkinsUri + failedBuild.url %>" title="<%= failedBuild.job.jobName%>"><li><%= failedBuild.job.jobName %></li></a>
        <% end %>
        </ul>
        <ul class="all-builds">
@@ -35,6 +35,5 @@
     <% end %>
   </tr>
   </table>
-
 </body>
 </html>

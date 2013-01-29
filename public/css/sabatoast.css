@@ -431,6 +431,11 @@ ul, li {
   text-rendering: optimizelegibility;
 }
 
+.failed-builds a {
+  text-decoration: none;
+  color: #fff;
+}
+
 .details {
   margin-top:10px;
 }
