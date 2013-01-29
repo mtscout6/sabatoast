@@ -10,32 +10,26 @@
   <tr>
     <% @builds.each do |build| %>
     <td>
-       <h1><%= build[:branch]%> <small><a href="<%= build[:url]%>" target="_blank"><%= build[:buildnum]%></a></small></h1>
-       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build[:SHA1]%>"><%= build[:SHA1]%></a></small></h3>
+       <h1><%= build.branch %> <small><a href="<%= settings.jenkinsUri + build.url %>" target="_blank"><%= build.buildNumber %></a></small></h1>
+       <h3><small class="sha">HEAD: <a target="_blank" href="https://github.com/DovetailSoftware/blue/commit/<%= build.sha %>"><%= build.sha %></a></small></h3>
 
-       <% if build[:result].nil? %>
+       <% if build.status == "RUNNING" %>
        <h2>Building...</h2>
        <% end %>
        <ul class="failed-builds">
-       <% build[:failures].each do |f| %>
-          <li><%= f[:name]%></li>
+       <% build.downstreamBuilds.select{|b| b.status == "FAILURE" }.each do |failedBuild| %>
+         <li><%= failedBuild.job.jobName %></li>
        <% end %>
        </ul>
        <ul class="all-builds">
-       <% build[:downstream_builds].each do |ds| %>
-          <li class="<%= ds[:result].nil? ? 'building' : ds[:result].downcase %>"><a target="_blank" href="<%= ds[:url]%>" title="<%= ds[:name]%>"><%= ds[:name]%></a></li>
+       <% build.downstreamBuilds.each do |ds| %>
+          <li class="<%= ds.status.downcase %>"><a target="_blank" href="<%= settings.jenkinsUri + ds.url %>" title="<%= ds.job.jobName%>"><%= ds.job.jobName %></a></li>
        <% end %>
        </ul>
     </td>
     <% end %>
   </tr>
   </table>
-
-  <ul class="current-builds">
-    <% @cc_builds.each do |build| %>
-    <li class="<%= build[:status]%>"><a target="_blank" href="<%= build[:url]%>"><%= build[:name]%></a></li>
-    <% end %>
-  </ul>
 
 </body>
 </html>
