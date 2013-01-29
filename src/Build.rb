@@ -12,12 +12,14 @@ class Build
 
     @downstreamBuilds = Hash.new
 
-    @isRunning = true
-    @currentStatus = "RUNNING"
+    @currentStatus = "NOTRUN"
   end
 
   def status
-    updateStatus if @isRunning
+    if (@currentStatus == "NOTRUN" || @currentStatus == "RUNNING")
+      updateStatus
+    end
+
     @currentStatus
   end
 
@@ -34,7 +36,7 @@ class Build
   end
 
   def upstreamBuild
-    getUpstreamBuild unless @fetchedUpstreamBuild
+    getUpstreamBuild
     @upstreamBuild
   end
 
@@ -49,7 +51,7 @@ class Build
       end
     end
 
-    @downstreamBuilds.each_value.map{|x| x}
+    @downstreamBuilds.each_value
   end
 
   def addDownstreamBuild(build)
@@ -62,8 +64,15 @@ class Build
 
   def updateStatus
     response = getJSON("#{@apiUrl}?tree=building,result")
-    @isRunning = response["building"]
-    @currentStatus = response["result"] unless @isRunning
+    isRunning = response["building"]
+
+    if (isRunning)
+      @currentStatus = "RUNNING"
+    else
+      @currentStatus = "NOTRUN"
+      @currentStatus = response["result"] unless response["result"].nil?
+      @currentStatus = "FAILURE" if @currentStatus == "ABORTED"
+    end
   end
 
   def getUpstreamBuild

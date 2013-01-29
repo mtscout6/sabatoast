@@ -37,11 +37,56 @@ describe Build do
       @build.status().should eq "RUNNING"
     end
 
-    it "returns build result if job is not building" do
-      stubResult('{ "building" : false, "result" : "SOME RESULT" }')
+    it "returns RUNNING if job is building with no result" do
+      stubResult('{ "building" : true }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.status().should eq "RUNNING"
+      @build.status().should eq "RUNNING"
+    end
+
+    it "returns SUCCESS if job is done building and succeeded" do
+      stubResult('{ "building" : false, "result" : "SUCCESS" }')
       @build.should_receive(:getJSON).with(/tree=building,result/).once
-      @build.status().should eq "SOME RESULT"
-      @build.status().should eq "SOME RESULT"
+      @build.status().should eq "SUCCESS"
+      @build.status().should eq "SUCCESS"
+    end
+
+    it "returns FAILURE if job is done building and failed" do
+      stubResult('{ "building" : false, "result" : "FAILURE" }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).once
+      @build.status().should eq "FAILURE"
+      @build.status().should eq "FAILURE"
+    end
+
+    it "returns FAILURE if job is done building and aborted" do
+      stubResult('{ "building" : false, "result" : "ABORTED" }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).once
+      @build.status().should eq "FAILURE"
+      @build.status().should eq "FAILURE"
+    end
+
+    it "returns NOTRUN if job has not started building" do
+      stubResult('{ "building" : false, "result" : null }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.status().should eq "NOTRUN"
+      @build.status().should eq "NOTRUN"
+    end
+
+    it "lifecycle" do
+      stubResult('{ "building" : false, "result" : null }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.status().should eq "NOTRUN"
+      @build.status().should eq "NOTRUN"
+
+      stubResult('{ "building" : true, "result" : null }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).twice
+      @build.status().should eq "RUNNING"
+      @build.status().should eq "RUNNING"
+
+      stubResult('{ "building" : false, "result" : "SUCCESS" }')
+      @build.should_receive(:getJSON).with(/tree=building,result/).once
+      @build.status().should eq "SUCCESS"
+      @build.status().should eq "SUCCESS"
     end
 
     def stubResult(json)
@@ -128,16 +173,16 @@ describe Build do
         @build.stub(:getJSON).with(/tree=actions\[causes/).and_return(JSON.parse('{ "actions" : [ { "causes" : [ { }, { }, { } ] }, { }, { }, { } ] }'))
       end
 
+      it 'returns nil' do
+        @build.upstreamBuild.should be nil
+      end
+
       it 'caches the result' do
         @build.should_receive(:getJSON).with(/tree=actions\[causes/).once
         first = @build.upstreamBuild
         second = @build.upstreamBuild
 
         first.should be second
-      end
-
-      it 'returns nil' do
-        @build.upstreamBuild.should be nil
       end
 
       it 'does not add itself to an upstream build' do
@@ -156,7 +201,7 @@ describe Build do
 
     it 'returns empty list' do
       downstreamBuilds = @build.downstreamBuildsRaw
-      downstreamBuilds.length.should eq 0
+      downstreamBuilds.count.should eq 0
     end
 
     it 'adds build to list' do
@@ -226,6 +271,7 @@ describe Build do
         for j in 1..5
           b = Build.new(downstreamJob, i*j)
           b.stub(:getUpstreamBuild).and_return(nil)
+          b.stub(:status).and_return("SUCCESS")
           builds << b
         end
 
@@ -239,7 +285,7 @@ describe Build do
 
     it 'build temporary builds' do
       builds = @build.downstreamBuilds
-      builds.length.should eq @downstreamJobs.length
+      builds.count.should eq @downstreamJobs.length
       builds.each {|b|
         b.should be_an_instance_of TemporaryBuild
         b.status.should eq 'NOTRUN'
@@ -251,7 +297,7 @@ describe Build do
       expBuild.stub(:upstreamBuild).and_return(@build)
 
       builds = @build.downstreamBuilds
-      builds.length.should eq @downstreamJobs.length
+      builds.count.should eq @downstreamJobs.length
 
       nonTemp = builds.find {|b| b.kind_of? Build}
       nonTemp.nil?.should eq false
@@ -272,7 +318,29 @@ describe Build do
 
       builds = @build.downstreamBuilds
       builds = @build.downstreamBuilds
-      builds.length.should eq @downstreamJobs.length
+      builds.count.should eq @downstreamJobs.length
+
+      nonTemp = builds.find {|b| b.kind_of? Build}
+      nonTemp.nil?.should eq false
+      nonTemp.should be expBuild
+
+      builds.reject{|b|
+        b.kind_of? Build
+      }
+      .each {|b|
+        b.should be_an_instance_of TemporaryBuild
+        b.status.should eq 'NOTRUN'
+      }.count.should eq 4
+    end
+
+    it 'returns downstream build if has been started even if already a temporary build' do
+      builds = @build.downstreamBuilds
+
+      expBuild = @downstreamJobs[0].lastXBuilds(nil)[0]
+      expBuild.stub(:upstreamBuild).and_return(@build)
+
+      builds = @build.downstreamBuilds
+      builds.count.should eq @downstreamJobs.length
 
       nonTemp = builds.find {|b| b.kind_of? Build}
       nonTemp.nil?.should eq false
@@ -287,5 +355,4 @@ describe Build do
       }.count.should eq 4
     end
   end
-
 end
