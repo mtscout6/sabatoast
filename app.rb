@@ -21,7 +21,7 @@ end
 
 get '/' do
   job = JobCache.instance.getJob settings.jenkinsJob
-  @builds = job.lastXBuilds 5
+  @builds = job.lastXBuilds 4
 
   erb :index
 end
